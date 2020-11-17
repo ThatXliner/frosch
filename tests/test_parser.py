@@ -2,6 +2,12 @@ import unittest
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+try:
+    from hypothesis import given
+    from hypothesmith import from_grammar
+except ImportError:
+    # If not installed, not needed
+    pass
 import pytest
 
 from frosch import parser
@@ -127,7 +133,6 @@ class TestParser(TestCase):
 
         self.assertEqual(result, "x = 3")
 
-
     def test_retrieve_post_mortem_stack_infos(self):
         with patch("bdb.Bdb.get_stack") as get_stack_mock:
             stack_mock = Mock()
@@ -158,6 +163,23 @@ class TestParser(TestCase):
     def test_format_line_syntax_error(self):
         with pytest.raises(parser.ParseError):
             parser.format_line("x asd ")
+
+    # 
+    # Those were experimental, and passed
+    # from_grammar generates random valid pyton expressions
+    # Test to see if run wihtout crashing
+    # These test are heavy on should not be part of CI
+    # Workflow
+
+    @unittest.skipIf(True, "Not part of CI workflow testing")
+    @given(from_grammar())
+    def test_parse_error_line_hypo(self, line):
+        variables = parser.parse_error_line(line)
+
+    @unittest.skipIf(True, "Not part of CI workflow testing")
+    @given(from_grammar())
+    def test_format_line_line_hypo(self, line):
+        line = parser.format_line(line) 
 
 class TestParsedException(TestCase):
 
